@@ -131,7 +131,7 @@ testCases.push(function (dbType, context) {
         });
       });
     });
-    it('should works with $and with multiple $regex conditions on same field', function () {
+    it('should works with $and with multiple $regex on same field', function () {
       var db = context.db;
       var index = {
         "index": {
@@ -159,6 +159,31 @@ testCases.push(function (dbType, context) {
             },
             { name: 'Link', rank: 10, _id: 'link', series: 'Zelda', debut: 1986, awesome: true },
           ]);
+        });
+      });
+    });
+    it('should not work with non-string fields', function () {
+      var db = context.db;
+      var index = {
+        "index": {
+          "fields": ["debut"]
+        }
+      };
+      return db.createIndex(index).then(function () {
+        return db.find({
+          selector: {
+            $and: [
+              { debut: { $regex: /2/i } },
+            ]
+          },
+          sort: [ 'debut' ]
+        }).then(function (resp) {
+          console.log(resp);
+          var docs = resp.docs.map(function (doc) {
+            delete doc._rev;
+            return doc;
+          });
+          docs.should.deep.equal([]);
         });
       });
     });
